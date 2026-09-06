@@ -92,6 +92,22 @@ h1{
 }
 .sub{color:var(--ink-soft);max-width:64ch;font-size:15px;}
 
+.headerRow{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;}
+.themeToggle{
+  flex-shrink:0;
+  width:40px;height:40px;
+  display:inline-flex;align-items:center;justify-content:center;
+  border-radius:10px;
+  border:1px solid var(--line);
+  background:var(--surface);
+  color:var(--ink-soft);
+  cursor:pointer;
+  transition:border-color .12s ease, color .12s ease, background .12s ease;
+}
+.themeToggle:hover{border-color:var(--accent);color:var(--accent);}
+.themeToggle:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+.themeToggle svg{width:18px;height:18px;}
+
 .panel{
   background:var(--surface);
   border:1px solid var(--line);
@@ -158,6 +174,50 @@ select:disabled{color:var(--ink-faint);cursor:not-allowed;}
 .chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
 
 .planrow{font-size:11px;color:var(--ink-faint);margin-top:4px;max-width:26ch;line-height:1.35;}
+
+.tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);padding-bottom:0;}
+.tabBtn{
+  font-family:'Manrope', sans-serif;
+  font-weight:600;
+  font-size:14px;
+  padding:10px 4px;
+  margin-bottom:-1px;
+  background:none;
+  border:none;
+  border-bottom:2px solid transparent;
+  color:var(--ink-faint);
+  cursor:pointer;
+}
+.tabBtn + .tabBtn{margin-left:10px;}
+.tabBtn:hover{color:var(--ink);}
+.tabBtn.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tabBtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+.pickgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;}
+.pickcard{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:14px;
+  box-shadow:var(--shadow);
+  padding:20px 22px;
+  display:flex;flex-direction:column;gap:16px;
+}
+.pickHead{display:flex;flex-direction:column;gap:2px;}
+.pickName{font-family:'Manrope',sans-serif;font-weight:800;font-size:19px;letter-spacing:-0.01em;}
+.pickTag{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--accent);text-transform:uppercase;letter-spacing:0.04em;}
+.pickList h3{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  margin:0 0 8px;
+  font-weight:600;
+}
+.pickList.pros h3{color:var(--good);}
+.pickList.cons h3{color:var(--bad);}
+.pickList ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:7px;}
+.pickList li{font-size:13.5px;color:var(--ink-soft);line-height:1.45;}
+.pickList li::marker{color:var(--ink-faint);}
 
 table{border-collapse:collapse;width:100%;font-size:14px;}
 .tablewrap{overflow-x:auto;}
@@ -261,11 +321,21 @@ footer{color:var(--ink-faint);font-size:12px;text-align:center;margin-top:8px;}
 <body>
 
 <div class="wrap">
-  <div>
-    <div class="eyebrow">Kupi Time &middot; order system</div>
-    <h1>Payment gateway fee simulator</h1>
-    <p class="sub">Enter an order value to see what Billplz, ToyyibPay, HitPay and Stripe would each take off a Kupi Time order, plan by plan and method by method — then check the monthly cost at your real order volume.</p>
+  <div class="headerRow">
+    <div>
+      <div class="eyebrow">Kupi Time &middot; order system</div>
+      <h1>Payment gateway fee simulator</h1>
+      <p class="sub">Enter an order value to see what Billplz, ToyyibPay, HitPay and Stripe would each take off a Kupi Time order, plan by plan and method by method — then check the monthly cost at your real order volume.</p>
+    </div>
+    <button type="button" id="themeToggle" class="themeToggle" aria-label="Switch color theme" title="Switch color theme"></button>
   </div>
+
+  <div class="tabs" role="tablist">
+    <button type="button" class="tabBtn active" id="tabBtnSim" role="tab" aria-selected="true" aria-controls="tabSim">Fee simulator</button>
+    <button type="button" class="tabBtn" id="tabBtnPick" role="tab" aria-selected="false" aria-controls="tabPick">Our pick: 2 gateways</button>
+  </div>
+
+  <div id="tabSim">
 
   <div class="panel">
     <h2>Gateway plan / tier</h2>
@@ -347,6 +417,73 @@ footer{color:var(--ink-faint);font-size:12px;text-align:center;margin-top:8px;}
       <li><strong>Stripe Malaysia</strong> — 3% + RM1 on both FPX and local cards, +1% more on international cards, +2% more again if currency conversion is involved. GrabPay is a flat 3% (Stripe's only local e-wallet). No published DuitNow, TNG, ShopeePay or Boost support, and no volume-discount numbers outside a negotiated enterprise deal.</li>
       <li>Figures are drawn from each provider's own published pricing pages as of September 2026. Gateway fees change without much notice — re-check the live pricing pages before switching or signing anything, especially Billplz's card rate after its August 2026 move to direct card processing.</li>
     </ul>
+  </div>
+
+  </div>
+
+  <div id="tabPick" hidden>
+
+  <div class="panel">
+    <h2>Shortlist: Billplz vs HitPay</h2>
+    <p class="desc">ToyyibPay is the cheapest gateway on paper, but it doesn't support TNG, GrabPay or ShopeePay at all — a real gap for an order app where most walk-up customers pay by e-wallet. Stripe is priced for international business, not RM8–RM20 kopi orders. That leaves two genuine contenders, and neither one is a clean winner — it depends on which payment method your customers actually reach for.</p>
+  </div>
+
+  <div class="pickgrid">
+    <div class="pickcard">
+      <div class="pickHead">
+        <span class="pickName">Billplz</span>
+        <span class="pickTag">cheapest on cards &amp; small FPX orders</span>
+      </div>
+      <div class="pickList pros">
+        <h3>Pros</h3>
+        <ul>
+          <li>Card fee is pure percentage (1.8%, no fixed RM) — beats HitPay on every card payment, not just small ones: RM0.22 vs RM1.14 on a RM12 order.</li>
+          <li>One flat 1.5% "Wallet" rate covers DuitNow, TNG, GrabPay and Boost — cheaper than HitPay on TNG and GrabPay specifically (RM0.18 vs RM0.23–0.24 on RM12).</li>
+          <li>Standard plan (RM999/yr + SST) drops FPX to RM0.75 and card to 1.5% once volume justifies it — a clear upgrade path as Kupi Time grows.</li>
+          <li>Well-established in Malaysia; likely the easiest merchant approval for a new F&amp;B app.</li>
+        </ul>
+      </div>
+      <div class="pickList cons">
+        <h3>Cons</h3>
+        <ul>
+          <li>FPX B2C is a flat RM1.25 (Basic) — worse than HitPay's RM0.62 on a RM12 order; only wins once orders pass roughly RM47.</li>
+          <li>No ShopeePay support at all.</li>
+          <li>Wallet payments (DuitNow specifically) are 1.5% vs HitPay's 1.2%.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="pickcard">
+      <div class="pickHead">
+        <span class="pickName">HitPay</span>
+        <span class="pickTag">widest e-wallet coverage</span>
+      </div>
+      <div class="pickList pros">
+        <h3>Pros</h3>
+        <ul>
+          <li>Only one of the two with ShopeePay support, and the cheapest on FPX below ~RM47 (RM0.62 vs Billplz's RM1.25 on a RM12 order).</li>
+          <li>Cheapest on DuitNow specifically — 1.2% vs Billplz's 1.5%.</li>
+          <li>Every method priced individually and published, so costs stay predictable as new payment options get added.</li>
+          <li>Free to start, same as Billplz Basic — no setup or monthly fee.</li>
+        </ul>
+      </div>
+      <div class="pickList cons">
+        <h3>Cons</h3>
+        <ul>
+          <li>Card fee carries a fixed RM1.00 on top of 1.2% — over 5&times; more expensive than Billplz on a RM12 card payment.</li>
+          <li>TNG and GrabPay both cost more than Billplz's blanket wallet rate (1.9%/2.0% vs 1.5%).</li>
+          <li>No published discount plan — only an unpublished custom tier once volume passes ~RM50k/month.</li>
+          <li>Using HitPay's own checkout product (rather than a direct API integration) adds another 0.2% on everything.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>How to decide</h2>
+    <p class="desc" style="margin-bottom:0;">If most Kupi Time orders will be paid by card or by tapping TNG/GrabPay at pickup, Billplz comes out cheaper. If FPX bank transfer or DuitNow QR is the main way customers pay — or you want ShopeePay as an option — HitPay wins instead. Worth checking the actual method breakdown from a few weeks of real orders before committing, since the two trade the lead depending on which method dominates.</p>
+  </div>
+
   </div>
 
   <footer>Built for Kupi Time — numbers are a simulation, not a quote from any gateway.</footer>
@@ -690,6 +827,65 @@ document.getElementById('price').addEventListener('input', update);
 document.getElementById('volume').addEventListener('input', renderProjection);
 document.getElementById('methodSelect').addEventListener('change', renderProjection);
 
+// --- theme toggle (light / dark, independent of system preference) ---
+const SUN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>';
+const MOON_ICON = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M20.354 15.354A9 9 0 0 1 8.646 3.646 9.003 9.003 0 1 0 20.354 15.354z"/></svg>';
+const THEME_KEY = 'kupi-fee-sim-theme';
+
+function effectiveTheme(){
+  const attr = document.documentElement.getAttribute('data-theme');
+  if(attr === 'light' || attr === 'dark') return attr;
+  return (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light';
+}
+
+function updateThemeToggleIcon(){
+  const btn = document.getElementById('themeToggle');
+  if(!btn) return;
+  const eff = effectiveTheme();
+  // icon shown = the mode you'd switch TO
+  btn.innerHTML = eff === 'dark' ? SUN_ICON : MOON_ICON;
+  btn.setAttribute('aria-label', eff === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+  btn.title = btn.getAttribute('aria-label');
+}
+
+function setTheme(theme){
+  document.documentElement.setAttribute('data-theme', theme);
+  try{ localStorage.setItem(THEME_KEY, theme); }catch(e){}
+  updateThemeToggleIcon();
+}
+
+function initTheme(){
+  let stored = null;
+  try{ stored = localStorage.getItem(THEME_KEY); }catch(e){}
+  if(stored === 'light' || stored === 'dark'){
+    document.documentElement.setAttribute('data-theme', stored);
+  }
+  updateThemeToggleIcon();
+  if(window.matchMedia){
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', ()=>{
+      if(!document.documentElement.getAttribute('data-theme')) updateThemeToggleIcon();
+    });
+  }
+}
+
+document.getElementById('themeToggle').addEventListener('click', ()=>{
+  setTheme(effectiveTheme() === 'dark' ? 'light' : 'dark');
+});
+
+// --- tabs ---
+function switchTab(tab){
+  const showSim = tab === 'sim';
+  document.getElementById('tabSim').hidden = !showSim;
+  document.getElementById('tabPick').hidden = showSim;
+  document.getElementById('tabBtnSim').classList.toggle('active', showSim);
+  document.getElementById('tabBtnPick').classList.toggle('active', !showSim);
+  document.getElementById('tabBtnSim').setAttribute('aria-selected', showSim);
+  document.getElementById('tabBtnPick').setAttribute('aria-selected', !showSim);
+}
+document.getElementById('tabBtnSim').addEventListener('click', ()=>switchTab('sim'));
+document.getElementById('tabBtnPick').addEventListener('click', ()=>switchTab('pick'));
+
+initTheme();
 renderPlanControls();
 renderChips();
 update();
