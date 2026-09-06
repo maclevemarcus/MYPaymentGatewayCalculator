@@ -1,3 +1,8 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Kupi Time Fee Simulator</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
@@ -208,7 +213,18 @@ td.na{color:var(--ink-faint);font-style:italic;font-family:'Work Sans',sans-seri
 code{font-family:'IBM Plex Mono',monospace;background:var(--surface-2);padding:1px 5px;border-radius:4px;font-size:12.5px;}
 
 footer{color:var(--ink-faint);font-size:12px;text-align:center;margin-top:8px;}
+
+@media (max-width:480px){
+  body{padding:20px 14px 60px;}
+  .panel{padding:16px 16px;border-radius:12px;}
+  select{min-width:0;width:100%;}
+  .field input[type=number]{width:100%;}
+  .controls{gap:14px;}
+  .controls .field{width:100%;}
+}
 </style>
+</head>
+<body>
 
 <div class="wrap">
   <div>
@@ -527,3 +543,6 @@ renderPlanControls();
 renderChips();
 update();
 </script>
+
+</body>
+</html>
