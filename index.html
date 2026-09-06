@@ -240,6 +240,17 @@ footer{color:var(--ink-faint);font-size:12px;text-align:center;margin-top:8px;}
   </div>
 
   <div class="panel">
+    <h2>Plan &amp; subscription costs</h2>
+    <p class="desc">What each plan costs to be on, separate from its per-transaction rate — subscription fee, card-onboarding fee, and what that works out to per month. The plan you've selected above is highlighted.</p>
+    <div class="tablewrap">
+      <table id="planCostTable">
+        <thead><tr><th>Gateway</th><th>Plan</th><th>Subscription</th><th>Onboarding / setup</th><th>Amortized / month</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel">
     <h2>Order value</h2>
     <p class="desc">Type a kopi/order price, or pick a common ticket size.</p>
     <div class="controls">
@@ -303,7 +314,7 @@ footer{color:var(--ink-faint);font-size:12px;text-align:center;margin-top:8px;}
     <ul>
       <li><strong>Billplz Basic</strong> (free) — FPX B2C is a flat RM1.25, card is 1.8% with no fixed fee, and DuitNow QR / TNG / Boost / GrabPay are all bundled under one "Wallet" rate of 1.5%. <strong>Billplz Standard</strong> costs RM999/year + 8% SST (≈RM1,079.12/year, ≈RM89.93/month) and drops FPX B2C to RM0.75, card to 1.5%, foreign card to 3.5% — wallet stays 1.5% on both plans. Standard only pays for itself once FPX/card volume is high enough to beat RM89.93/month in fee savings.</li>
       <li><strong>ToyyibPay Standard</strong> — RM1.00 flat for FPX B2C (RM2.00 B2B), 1.5% local card / 3.5% foreign card (card acceptance carries its own RM100 onboarding + RM100/year from year two, on top of the per-transaction rate), and DuitNow published as "1% or RM1" — shown here as whichever is larger. <strong>ToyyibPay Santai</strong> waives the FPX B2C fee entirely, but is restricted to registered non-profits, so it won't apply to Kupi Time as a commercial app — included for reference only.</li>
-      <li><strong>HitPay</strong> — the only one of the four with published per-method e-wallet rates (TNG, GrabPay, ShopeePay, DuitNow), which matters most for an F&amp;B app. Its FPX and local-card fees both carry a fixed component (RM0.40 / RM1.00), so it's most competitive on mid-to-large orders, not tiny ones. HitPay's site mentions custom/volume pricing for larger merchants but doesn't publish the numbers.</li>
+      <li><strong>HitPay</strong> — the only one of the four with published per-method e-wallet rates (TNG, GrabPay, ShopeePay, DuitNow), which matters most for an F&amp;B app. Its FPX and local-card fees both carry a fixed component (RM0.40 / RM1.00), so it's most competitive on mid-to-large orders, not tiny ones. Rates shown here are HitPay's <em>online-payment</em> rates specifically — its published in-person and recurring-billing tables are slightly cheaper on a few methods (e.g. TNG is 1.6% in-person vs 1.9% online), so re-check if Kupi Time ever takes a card in person. HitPay doesn't list Boost at all as a supported method. If the order flow uses one of HitPay's own checkout products (Online Store, Payment Links, POS) rather than a custom API integration, add another 0.2% on top of every rate below — that add-on doesn't apply to a direct API integration. Custom/volume pricing is available once average monthly volume in Malaysia passes roughly RM50,000, but the discounted rate isn't published.</li>
       <li><strong>Stripe Malaysia</strong> — 3% + RM1 on both FPX and local cards, +1% more on international cards, +2% more again if currency conversion is involved. GrabPay is a flat 3% (Stripe's only local e-wallet). No published DuitNow, TNG, ShopeePay or Boost support, and no volume-discount numbers outside a negotiated enterprise deal.</li>
       <li>Figures are drawn from each provider's own published pricing pages as of September 2026. Gateway fees change without much notice — re-check the live pricing pages before switching or signing anything, especially Billplz's card rate after its August 2026 move to direct card processing.</li>
     </ul>
@@ -337,9 +348,29 @@ const plans = {
 
 const selectedPlan = {billplz:'basic', toyyib:'standard', hitpay:'standard', stripe:'standard'};
 
-// annual fixed cost of a plan, amortized to a monthly figure for the projection panel
+// subscription / onboarding cost of each plan — separate from the per-transaction rate
+const planDetails = {
+  billplz: {
+    basic:    {annual: 0,       annualLabel: 'RM0/yr',                          onboard: 0,   onboardLabel: 'RM0'},
+    standard: {annual: 1079.12, annualLabel: 'RM999/yr + 8% SST ≈ RM1,079.12/yr', onboard: 0,   onboardLabel: 'RM0'},
+  },
+  toyyib: {
+    standard: {annual: 0, annualLabel: 'RM0/yr', onboard: 100, onboardLabel: 'RM100 once + RM100/yr from yr 2 (card acceptance only)'},
+    santai:   {annual: 0, annualLabel: 'RM0/yr', onboard: 100, onboardLabel: 'Same RM100 card setup applies if cards are enabled'},
+  },
+  hitpay: {
+    standard: {annual: 0, annualLabel: 'RM0/yr', onboard: 0, onboardLabel: 'RM0'},
+  },
+  stripe: {
+    standard: {annual: 0, annualLabel: 'RM0/yr', onboard: 0, onboardLabel: 'RM0'},
+  },
+};
+
+// annual subscription fee only, amortized to a monthly figure for the projection panel
+// (the ToyyibPay/HitPay/Stripe one-off or card-only onboarding fees are shown in the
+// plan-cost table instead, since they don't scale with every payment method)
 const planMonthlyFixed = {
-  billplz: {basic: 0, standard: r(999*1.08/12)},
+  billplz: {basic: 0, standard: r(planDetails.billplz.standard.annual/12)},
   toyyib: {standard: 0, santai: 0},
   hitpay: {standard: 0},
   stripe: {standard: 0},
@@ -390,6 +421,52 @@ const fee = {
   },
 };
 
+// the published rate formula, shown instead of a computed effective percentage
+const feeFormula = {
+  fpx: {
+    billplz: (plan) => plan==='standard' ? 'RM0.75 flat' : 'RM1.25 flat',
+    toyyib:  (plan) => plan==='santai' ? 'free (non-profit)' : 'RM1.00 flat',
+    hitpay:  () => '1.8% + RM0.40',
+    stripe:  () => '3% + RM1.00',
+  },
+  card: {
+    billplz: (plan) => plan==='standard' ? '1.5%' : '1.8%',
+    toyyib:  () => '1.5%',
+    hitpay:  () => '1.2% + RM1.00',
+    stripe:  () => '3% + RM1.00',
+  },
+  duitnow: {
+    billplz: () => '1.5%',
+    toyyib:  () => '1% or RM1, whichever is more',
+    hitpay:  () => '1.2%',
+    stripe:  () => null,
+  },
+  tng: {
+    billplz: () => '1.5%',
+    toyyib:  () => null,
+    hitpay:  () => '1.9%',
+    stripe:  () => null,
+  },
+  grab: {
+    billplz: () => '1.5%',
+    toyyib:  () => null,
+    hitpay:  () => '2.0%',
+    stripe:  () => '3%',
+  },
+  shopee: {
+    billplz: () => null,
+    toyyib:  () => null,
+    hitpay:  () => '2.2%',
+    stripe:  () => null,
+  },
+  boost: {
+    billplz: () => '1.5%',
+    toyyib:  () => null,
+    hitpay:  () => null,
+    stripe:  () => null,
+  },
+};
+
 const methodLabel = {fpx:'FPX / online banking', card:'Visa / Mastercard', duitnow:'DuitNow QR', tng:'TNG eWallet', grab:'GrabPay', shopee:'ShopeePay', boost:'Boost'};
 const methodOrder = ['fpx','card','duitnow','tng','grab','shopee','boost'];
 
@@ -397,6 +474,10 @@ const presets = [8, 10, 12, 15, 20, 30, 50, 100];
 
 function calc(method, gw, price){
   return fee[method][gw](price, selectedPlan[gw]);
+}
+
+function formula(method, gw){
+  return feeFormula[method][gw](selectedPlan[gw]);
 }
 
 function renderPlanControls(){
@@ -422,6 +503,27 @@ function renderPlanControls(){
     div.appendChild(label);
     div.appendChild(select);
     wrap.appendChild(div);
+  });
+}
+
+function renderPlanCostTable(){
+  const tbody = document.querySelector('#planCostTable tbody');
+  tbody.innerHTML = '';
+  gateways.forEach(g=>{
+    plans[g].forEach(pl=>{
+      const d = planDetails[g][pl.id];
+      const tr = document.createElement('tr');
+      const active = pl.id === selectedPlan[g];
+      if(active) tr.style.background = 'var(--accent-soft)';
+      const monthly = r(d.annual/12);
+      tr.innerHTML =
+        '<th>'+gwLabel[g]+'</th>'+
+        '<td style="text-align:left;font-weight:'+(active?'600':'400')+';">'+pl.label+(active?' <span style="color:var(--accent);font-size:11px;">&larr; selected</span>':'')+'</td>'+
+        '<td style="text-align:left;">'+d.annualLabel+'</td>'+
+        '<td style="text-align:left;">'+d.onboardLabel+'</td>'+
+        '<td>'+(monthly>0 ? 'RM'+monthly.toFixed(2) : '—')+'</td>';
+      tbody.appendChild(tr);
+    });
   });
 }
 
@@ -464,8 +566,8 @@ function renderMethodTable(price){
         td.className='na';
         td.textContent = '—';
       } else {
-        const pct = (v/price*100);
-        td.innerHTML = 'RM' + v.toFixed(2) + '<span class="pct">' + pct.toFixed(1) + '% of order</span>';
+        const rate = formula(m, g);
+        td.innerHTML = 'RM' + v.toFixed(2) + '<span class="pct">' + rate + '</span>';
         if(v===min && numeric.length>1) td.classList.add('best');
         else if(v===max && numeric.length>1 && max!==min) td.classList.add('worst');
       }
@@ -533,6 +635,7 @@ function update(){
   markActiveChip(price);
   renderProjection();
   renderRefTable();
+  renderPlanCostTable();
 }
 
 document.getElementById('price').addEventListener('input', update);
