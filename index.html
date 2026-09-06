@@ -1,0 +1,529 @@
+<title>Kupi Time Fee Simulator</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+:root{
+  --bg:#F4F6F5;
+  --surface:#FFFFFF;
+  --surface-2:#EBEFEC;
+  --ink:#1F1B18;
+  --ink-soft:#6B6259;
+  --ink-faint:#948B81;
+  --accent:#6F4E37;
+  --accent-soft:#EFE3D8;
+  --good:#3F7859;
+  --good-bg:#E4F1E9;
+  --warn:#B45309;
+  --warn-bg:#FBEEDD;
+  --bad:#A83232;
+  --bad-bg:#F7E7E5;
+  --line:#DEE3DF;
+  --shadow: 0 1px 2px rgba(31,27,24,0.04), 0 8px 24px -12px rgba(31,27,24,0.12);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#18140F;
+    --surface:#211B15;
+    --surface-2:#2A2119;
+    --ink:#F1ECE7;
+    --ink-soft:#B9AC9E;
+    --ink-faint:#867A6D;
+    --accent:#D2A46F;
+    --accent-soft:#3A2C1F;
+    --good:#79C79B;
+    --good-bg:#1F3327;
+    --warn:#E3A85B;
+    --warn-bg:#3A2C18;
+    --bad:#E28E82;
+    --bad-bg:#3A2320;
+    --line:#3A322C;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#18140F;
+  --surface:#211B15;
+  --surface-2:#2A2119;
+  --ink:#F1ECE7;
+  --ink-soft:#B9AC9E;
+  --ink-faint:#867A6D;
+  --accent:#D2A46F;
+  --accent-soft:#3A2C1F;
+  --good:#79C79B;
+  --good-bg:#1F3327;
+  --warn:#E3A85B;
+  --warn-bg:#3A2C18;
+  --bad:#E28E82;
+  --bad-bg:#3A2320;
+  --line:#3A322C;
+  --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+}
+
+*{box-sizing:border-box;}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:'Work Sans', ui-sans-serif, system-ui, sans-serif;
+  line-height:1.5;
+  padding:32px 20px 80px;
+}
+.wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:28px;}
+
+.eyebrow{
+  font-family:'IBM Plex Mono', ui-monospace, monospace;
+  font-size:12px;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  color:var(--accent);
+  font-weight:500;
+}
+h1{
+  font-family:'Manrope', ui-sans-serif, sans-serif;
+  font-weight:800;
+  font-size:clamp(28px,4vw,38px);
+  margin:6px 0 8px;
+  text-wrap:balance;
+  letter-spacing:-0.01em;
+}
+.sub{color:var(--ink-soft);max-width:64ch;font-size:15px;}
+
+.panel{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:14px;
+  box-shadow:var(--shadow);
+  padding:22px 24px;
+}
+.panel h2{
+  font-family:'Manrope', sans-serif;
+  font-weight:700;
+  font-size:17px;
+  margin:0 0 4px;
+  letter-spacing:-0.01em;
+}
+.panel .desc{color:var(--ink-soft);font-size:13.5px;margin:0 0 16px;}
+
+.controls{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-end;}
+.field{display:flex;flex-direction:column;gap:6px;}
+.field label{
+  font-size:11.5px;
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:0.06em;
+  color:var(--ink-faint);
+}
+.field input[type=number]{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:18px;
+  font-variant-numeric:tabular-nums;
+  width:130px;
+  padding:9px 10px;
+  border-radius:9px;
+  border:1px solid var(--line);
+  background:var(--surface-2);
+  color:var(--ink);
+}
+select{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:13px;
+  padding:9px 10px;
+  border-radius:9px;
+  border:1px solid var(--line);
+  background:var(--surface-2);
+  color:var(--ink);
+  min-width:210px;
+}
+select:disabled{color:var(--ink-faint);cursor:not-allowed;}
+.field input[type=number]:focus, select:focus{outline:2px solid var(--accent);outline-offset:1px;}
+.chips{display:flex;flex-wrap:wrap;gap:8px;}
+.chip{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:13px;
+  font-variant-numeric:tabular-nums;
+  padding:7px 12px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background:var(--surface-2);
+  color:var(--ink-soft);
+  cursor:pointer;
+  transition:background .12s ease, color .12s ease, border-color .12s ease;
+}
+.chip:hover{border-color:var(--accent);color:var(--ink);}
+.chip.active{background:var(--accent);border-color:var(--accent);color:var(--surface);}
+.chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+.planrow{font-size:11px;color:var(--ink-faint);margin-top:4px;max-width:26ch;line-height:1.35;}
+
+table{border-collapse:collapse;width:100%;font-size:14px;}
+.tablewrap{overflow-x:auto;}
+th,td{padding:9px 12px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap;}
+th:first-child,td:first-child{text-align:left;}
+thead th{
+  font-family:'IBM Plex Mono', monospace;
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:0.06em;
+  color:var(--ink-faint);
+  font-weight:600;
+  border-bottom:1px solid var(--line);
+}
+tbody th{
+  font-weight:600;
+  font-size:13.5px;
+  color:var(--ink);
+}
+td{font-family:'IBM Plex Mono', monospace;font-variant-numeric:tabular-nums;color:var(--ink-soft);}
+td .pct{display:block;font-size:11px;color:var(--ink-faint);margin-top:1px;}
+td.best{background:var(--good-bg);color:var(--good);font-weight:600;border-radius:6px;}
+td.best .pct{color:var(--good);opacity:0.75;}
+td.worst{color:var(--bad);}
+td.na{color:var(--ink-faint);font-style:italic;font-family:'Work Sans',sans-serif;font-size:12.5px;}
+
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:14px;font-size:12.5px;color:var(--ink-faint);}
+.legend span{display:inline-flex;align-items:center;gap:6px;}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
+.dot.good{background:var(--good);}
+.dot.na{background:var(--ink-faint);}
+
+.projection{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin-top:4px;}
+.pcard{
+  background:var(--surface-2);
+  border:1px solid var(--line);
+  border-radius:11px;
+  padding:14px 16px;
+  display:flex;flex-direction:column;gap:4px;
+}
+.pcard.lead{border-color:var(--good);background:var(--good-bg);}
+.pcard .gw{font-family:'Manrope',sans-serif;font-weight:700;font-size:14px;}
+.pcard .plan{font-size:11px;color:var(--ink-faint);}
+.pcard.lead .gw{color:var(--good);}
+.pcard .amt{font-family:'IBM Plex Mono',monospace;font-size:22px;font-weight:600;font-variant-numeric:tabular-nums;}
+.pcard.lead .amt{color:var(--good);}
+.pcard .note{font-size:11.5px;color:var(--ink-faint);}
+
+.notes{font-size:13px;color:var(--ink-soft);}
+.notes ul{margin:8px 0 0;padding-left:20px;}
+.notes li{margin-bottom:6px;}
+.notes strong{color:var(--ink);}
+code{font-family:'IBM Plex Mono',monospace;background:var(--surface-2);padding:1px 5px;border-radius:4px;font-size:12.5px;}
+
+footer{color:var(--ink-faint);font-size:12px;text-align:center;margin-top:8px;}
+</style>
+
+<div class="wrap">
+  <div>
+    <div class="eyebrow">Kupi Time &middot; order system</div>
+    <h1>Payment gateway fee simulator</h1>
+    <p class="sub">Enter an order value to see what Billplz, ToyyibPay, HitPay and Stripe would each take off a Kupi Time order, plan by plan and method by method — then check the monthly cost at your real order volume.</p>
+  </div>
+
+  <div class="panel">
+    <h2>Gateway plan / tier</h2>
+    <p class="desc">Fees change depending on which plan a gateway has you on. Billplz and ToyyibPay each publish more than one; HitPay and Stripe currently publish a single rate card (both mention custom/enterprise pricing for high volume, but neither lists numbers for it).</p>
+    <div class="controls" id="planControls"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Order value</h2>
+    <p class="desc">Type a kopi/order price, or pick a common ticket size.</p>
+    <div class="controls">
+      <div class="field">
+        <label for="price">Price (RM)</label>
+        <input type="number" id="price" value="12" min="1" step="0.5">
+      </div>
+      <div class="chips" id="chips"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Cost per order, by payment method</h2>
+    <p class="desc">What the gateway keeps from a single order at this price, on the plan selected above. Green = cheapest gateway for that method.</p>
+    <div class="tablewrap">
+      <table id="methodTable">
+        <thead><tr><th>Method</th><th>Billplz</th><th>ToyyibPay</th><th>HitPay</th><th>Stripe MY</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="legend">
+      <span><i class="dot good"></i>cheapest at this price</span>
+      <span><i class="dot na"></i>not offered / rate not published</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Monthly cost at your volume</h2>
+    <p class="desc">If every order this month came in the same way, here's what each gateway's plan would cost you in total — including Billplz Standard's amortized annual fee where selected.</p>
+    <div class="controls">
+      <div class="field">
+        <label for="volume">Orders / month</label>
+        <input type="number" id="volume" value="600" min="0" step="10">
+      </div>
+      <div class="field">
+        <label for="methodSelect">Payment method</label>
+        <select id="methodSelect">
+          <option value="fpx">FPX / online banking</option>
+          <option value="card">Visa / Mastercard (local)</option>
+          <option value="duitnow">DuitNow QR</option>
+          <option value="tng">TNG eWallet</option>
+          <option value="grab">GrabPay</option>
+          <option value="shopee">ShopeePay</option>
+          <option value="boost">Boost</option>
+        </select>
+      </div>
+    </div>
+    <div class="projection" id="projection"></div>
+  </div>
+
+  <div class="panel">
+    <h2>Reference table — FPX &amp; card, across common Kupi Time ticket sizes</h2>
+    <p class="desc">The two most-used methods, at prices from a single kopi to a bulk office order, on the plans selected above.</p>
+    <div class="tablewrap">
+      <table id="refTable"></table>
+    </div>
+  </div>
+
+  <div class="panel notes">
+    <h2>Notes on the numbers</h2>
+    <ul>
+      <li><strong>Billplz Basic</strong> (free) — FPX B2C is a flat RM1.25, card is 1.8% with no fixed fee, and DuitNow QR / TNG / Boost / GrabPay are all bundled under one "Wallet" rate of 1.5%. <strong>Billplz Standard</strong> costs RM999/year + 8% SST (≈RM1,079.12/year, ≈RM89.93/month) and drops FPX B2C to RM0.75, card to 1.5%, foreign card to 3.5% — wallet stays 1.5% on both plans. Standard only pays for itself once FPX/card volume is high enough to beat RM89.93/month in fee savings.</li>
+      <li><strong>ToyyibPay Standard</strong> — RM1.00 flat for FPX B2C (RM2.00 B2B), 1.5% local card / 3.5% foreign card (card acceptance carries its own RM100 onboarding + RM100/year from year two, on top of the per-transaction rate), and DuitNow published as "1% or RM1" — shown here as whichever is larger. <strong>ToyyibPay Santai</strong> waives the FPX B2C fee entirely, but is restricted to registered non-profits, so it won't apply to Kupi Time as a commercial app — included for reference only.</li>
+      <li><strong>HitPay</strong> — the only one of the four with published per-method e-wallet rates (TNG, GrabPay, ShopeePay, DuitNow), which matters most for an F&amp;B app. Its FPX and local-card fees both carry a fixed component (RM0.40 / RM1.00), so it's most competitive on mid-to-large orders, not tiny ones. HitPay's site mentions custom/volume pricing for larger merchants but doesn't publish the numbers.</li>
+      <li><strong>Stripe Malaysia</strong> — 3% + RM1 on both FPX and local cards, +1% more on international cards, +2% more again if currency conversion is involved. GrabPay is a flat 3% (Stripe's only local e-wallet). No published DuitNow, TNG, ShopeePay or Boost support, and no volume-discount numbers outside a negotiated enterprise deal.</li>
+      <li>Figures are drawn from each provider's own published pricing pages as of September 2026. Gateway fees change without much notice — re-check the live pricing pages before switching or signing anything, especially Billplz's card rate after its August 2026 move to direct card processing.</li>
+    </ul>
+  </div>
+
+  <footer>Built for Kupi Time — numbers are a simulation, not a quote from any gateway.</footer>
+</div>
+
+<script>
+function r(n){ return Math.round(n*100)/100; }
+
+const gateways = ['billplz','toyyib','hitpay','stripe'];
+const gwLabel = {billplz:'Billplz', toyyib:'ToyyibPay', hitpay:'HitPay', stripe:'Stripe MY'};
+
+const plans = {
+  billplz: [
+    {id:'basic', label:'Basic — free'},
+    {id:'standard', label:'Standard — RM999/yr + SST'},
+  ],
+  toyyib: [
+    {id:'standard', label:'Standard (all users)'},
+    {id:'santai', label:'Santai (non-profit only)'},
+  ],
+  hitpay: [
+    {id:'standard', label:'Standard (only published tier)'},
+  ],
+  stripe: [
+    {id:'standard', label:'Standard (only published tier)'},
+  ],
+};
+
+const selectedPlan = {billplz:'basic', toyyib:'standard', hitpay:'standard', stripe:'standard'};
+
+// annual fixed cost of a plan, amortized to a monthly figure for the projection panel
+const planMonthlyFixed = {
+  billplz: {basic: 0, standard: r(999*1.08/12)},
+  toyyib: {standard: 0, santai: 0},
+  hitpay: {standard: 0},
+  stripe: {standard: 0},
+};
+
+const fee = {
+  fpx: {
+    billplz: (p, plan) => plan==='standard' ? 0.75 : 1.25,
+    toyyib:  (p, plan) => plan==='santai' ? 0.00 : 1.00,
+    hitpay:  (p) => r(0.018*p + 0.40),
+    stripe:  (p) => r(0.03*p + 1.00),
+  },
+  card: {
+    billplz: (p, plan) => r((plan==='standard' ? 0.015 : 0.018) * p),
+    toyyib:  (p) => r(0.015*p),
+    hitpay:  (p) => r(0.012*p + 1.00),
+    stripe:  (p) => r(0.03*p + 1.00),
+  },
+  duitnow: {
+    billplz: (p) => r(0.015*p),
+    toyyib:  (p) => r(Math.max(0.01*p, 1.00)),
+    hitpay:  (p) => r(0.012*p),
+    stripe:  (p) => null,
+  },
+  tng: {
+    billplz: (p) => r(0.015*p),
+    toyyib:  (p) => null,
+    hitpay:  (p) => r(0.019*p),
+    stripe:  (p) => null,
+  },
+  grab: {
+    billplz: (p) => r(0.015*p),
+    toyyib:  (p) => null,
+    hitpay:  (p) => r(0.02*p),
+    stripe:  (p) => r(0.03*p),
+  },
+  shopee: {
+    billplz: (p) => null,
+    toyyib:  (p) => null,
+    hitpay:  (p) => r(0.022*p),
+    stripe:  (p) => null,
+  },
+  boost: {
+    billplz: (p) => r(0.015*p),
+    toyyib:  (p) => null,
+    hitpay:  (p) => null,
+    stripe:  (p) => null,
+  },
+};
+
+const methodLabel = {fpx:'FPX / online banking', card:'Visa / Mastercard', duitnow:'DuitNow QR', tng:'TNG eWallet', grab:'GrabPay', shopee:'ShopeePay', boost:'Boost'};
+const methodOrder = ['fpx','card','duitnow','tng','grab','shopee','boost'];
+
+const presets = [8, 10, 12, 15, 20, 30, 50, 100];
+
+function calc(method, gw, price){
+  return fee[method][gw](price, selectedPlan[gw]);
+}
+
+function renderPlanControls(){
+  const wrap = document.getElementById('planControls');
+  wrap.innerHTML = '';
+  gateways.forEach(g=>{
+    const div = document.createElement('div');
+    div.className = 'field';
+    const label = document.createElement('label');
+    label.textContent = gwLabel[g];
+    label.htmlFor = 'plan-'+g;
+    const select = document.createElement('select');
+    select.id = 'plan-'+g;
+    select.disabled = plans[g].length < 2;
+    plans[g].forEach(pl=>{
+      const opt = document.createElement('option');
+      opt.value = pl.id;
+      opt.textContent = pl.label;
+      if(pl.id === selectedPlan[g]) opt.selected = true;
+      select.appendChild(opt);
+    });
+    select.addEventListener('change', ()=>{ selectedPlan[g] = select.value; update(); });
+    div.appendChild(label);
+    div.appendChild(select);
+    wrap.appendChild(div);
+  });
+}
+
+function renderChips(){
+  const wrap = document.getElementById('chips');
+  wrap.innerHTML = '';
+  presets.forEach(p=>{
+    const b = document.createElement('button');
+    b.className = 'chip';
+    b.textContent = 'RM' + p;
+    b.onclick = ()=>{ document.getElementById('price').value = p; update(); };
+    wrap.appendChild(b);
+  });
+}
+
+function markActiveChip(price){
+  document.querySelectorAll('#chips .chip').forEach(c=>{
+    c.classList.toggle('active', c.textContent === 'RM' + price);
+  });
+}
+
+function renderMethodTable(price){
+  const tbody = document.querySelector('#methodTable tbody');
+  tbody.innerHTML = '';
+  methodOrder.forEach(m=>{
+    const tr = document.createElement('tr');
+    const th = document.createElement('th');
+    th.textContent = methodLabel[m];
+    tr.appendChild(th);
+
+    const values = gateways.map(g => calc(m, g, price));
+    const numeric = values.filter(v=>v!==null);
+    const min = numeric.length ? Math.min(...numeric) : null;
+    const max = numeric.length ? Math.max(...numeric) : null;
+
+    gateways.forEach((g,i)=>{
+      const td = document.createElement('td');
+      const v = values[i];
+      if(v===null){
+        td.className='na';
+        td.textContent = '—';
+      } else {
+        const pct = (v/price*100);
+        td.innerHTML = 'RM' + v.toFixed(2) + '<span class="pct">' + pct.toFixed(1) + '% of order</span>';
+        if(v===min && numeric.length>1) td.classList.add('best');
+        else if(v===max && numeric.length>1 && max!==min) td.classList.add('worst');
+      }
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+}
+
+function renderProjection(){
+  const price = parseFloat(document.getElementById('price').value) || 0;
+  const volume = parseFloat(document.getElementById('volume').value) || 0;
+  const method = document.getElementById('methodSelect').value;
+  const wrap = document.getElementById('projection');
+  wrap.innerHTML = '';
+
+  const costs = gateways.map(g => {
+    const per = calc(method, g, price);
+    const fixed = planMonthlyFixed[g][selectedPlan[g]] || 0;
+    const total = per===null ? null : r(per*volume + fixed);
+    return {g, per, fixed, total};
+  });
+  const validTotals = costs.filter(c=>c.total!==null).map(c=>c.total);
+  const min = validTotals.length ? Math.min(...validTotals) : null;
+
+  costs.forEach(c=>{
+    const div = document.createElement('div');
+    div.className = 'pcard' + (c.total===min && c.total!==null ? ' lead' : '');
+    const planLabel = plans[c.g].find(p=>p.id===selectedPlan[c.g]).label;
+    if(c.total===null){
+      div.innerHTML = '<div class="gw">'+gwLabel[c.g]+'</div><div class="plan">'+planLabel+'</div><div class="amt" style="color:var(--ink-faint);font-size:15px;">not offered</div>';
+    } else {
+      let note = 'RM'+c.per.toFixed(2)+' &times; '+volume+' orders';
+      if(c.fixed>0) note += ' + RM'+c.fixed.toFixed(2)+'/mo plan fee';
+      div.innerHTML = '<div class="gw">'+gwLabel[c.g]+'</div><div class="plan">'+planLabel+'</div><div class="amt">RM'+c.total.toFixed(2)+'</div><div class="note">'+note+'</div>';
+    }
+    wrap.appendChild(div);
+  });
+}
+
+function renderRefTable(){
+  const table = document.getElementById('refTable');
+  let html = '<thead><tr><th>Price</th>';
+  gateways.forEach(g=> html += '<th colspan="2">'+gwLabel[g]+'</th>');
+  html += '</tr><tr><th></th>';
+  gateways.forEach(()=> html += '<th>FPX</th><th>Card</th>');
+  html += '</tr></thead><tbody>';
+  presets.forEach(p=>{
+    html += '<tr><th>RM'+p+'</th>';
+    gateways.forEach(g=>{
+      const f = calc('fpx', g, p);
+      const c = calc('card', g, p);
+      html += '<td>'+(f===null?'—':'RM'+f.toFixed(2))+'</td>';
+      html += '<td>'+(c===null?'—':'RM'+c.toFixed(2))+'</td>';
+    });
+    html += '</tr>';
+  });
+  html += '</tbody>';
+  table.innerHTML = html;
+}
+
+function update(){
+  const price = parseFloat(document.getElementById('price').value) || 0;
+  renderMethodTable(price);
+  markActiveChip(price);
+  renderProjection();
+  renderRefTable();
+}
+
+document.getElementById('price').addEventListener('input', update);
+document.getElementById('volume').addEventListener('input', renderProjection);
+document.getElementById('methodSelect').addEventListener('change', renderProjection);
+
+renderPlanControls();
+renderChips();
+update();
+</script>
