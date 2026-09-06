@@ -206,6 +206,40 @@ td.na{color:var(--ink-faint);font-style:italic;font-family:'Work Sans',sans-seri
 .pcard.lead .amt{color:var(--good);}
 .pcard .note{font-size:11.5px;color:var(--ink-faint);}
 
+.plancards{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:12px;}
+.plancard{
+  background:var(--surface-2);
+  border:1px solid var(--line);
+  border-radius:11px;
+  padding:14px 16px;
+  display:flex;flex-direction:column;gap:10px;
+}
+.plancard.selected{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);}
+.pcTop{display:flex;align-items:baseline;justify-content:space-between;gap:8px;}
+.pcTop .gw{font-family:'Manrope',sans-serif;font-weight:700;font-size:14px;}
+.pcTop .planname{font-size:12px;color:var(--ink-soft);text-align:right;}
+.selectedTag{
+  display:inline-block;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:10px;
+  letter-spacing:0.04em;
+  text-transform:uppercase;
+  color:var(--accent);
+  background:var(--accent-soft);
+  border-radius:5px;
+  padding:2px 6px;
+  align-self:flex-start;
+}
+.pcStat{display:flex;flex-direction:column;gap:1px;}
+.pcStat .k{font-size:11px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:0.04em;}
+.pcStat .v{font-family:'IBM Plex Mono',monospace;font-size:14px;font-variant-numeric:tabular-nums;color:var(--ink);}
+.pcStat .v small{font-family:'Work Sans',sans-serif;font-size:11px;color:var(--ink-faint);}
+.pcDivider{border-top:1px solid var(--line);margin:0;}
+.pcMonthly{display:flex;align-items:center;justify-content:space-between;}
+.pcMonthly .k{font-size:11.5px;color:var(--ink-faint);}
+.pcMonthly .v{font-family:'IBM Plex Mono',monospace;font-size:19px;font-weight:600;font-variant-numeric:tabular-nums;}
+.plancard.selected .pcMonthly .v{color:var(--accent);}
+
 .notes{font-size:13px;color:var(--ink-soft);}
 .notes ul{margin:8px 0 0;padding-left:20px;}
 .notes li{margin-bottom:6px;}
@@ -241,13 +275,8 @@ footer{color:var(--ink-faint);font-size:12px;text-align:center;margin-top:8px;}
 
   <div class="panel">
     <h2>Plan &amp; subscription costs</h2>
-    <p class="desc">What each plan costs to be on, separate from its per-transaction rate — subscription fee, card-onboarding fee, and what that works out to per month. The plan you've selected above is highlighted.</p>
-    <div class="tablewrap">
-      <table id="planCostTable">
-        <thead><tr><th>Gateway</th><th>Plan</th><th>Subscription</th><th>Onboarding / setup</th><th>Amortized / month</th></tr></thead>
-        <tbody></tbody>
-      </table>
-    </div>
+    <p class="desc">What each plan costs to be on, separate from its per-transaction rate. The plan selected above is outlined.</p>
+    <div class="plancards" id="planCostCards"></div>
   </div>
 
   <div class="panel">
@@ -331,18 +360,18 @@ const gwLabel = {billplz:'Billplz', toyyib:'ToyyibPay', hitpay:'HitPay', stripe:
 
 const plans = {
   billplz: [
-    {id:'basic', label:'Basic — free'},
-    {id:'standard', label:'Standard — RM999/yr + SST'},
+    {id:'basic', label:'Basic — free', shortLabel:'Basic'},
+    {id:'standard', label:'Standard — RM999/yr + SST', shortLabel:'Standard'},
   ],
   toyyib: [
-    {id:'standard', label:'Standard (all users)'},
-    {id:'santai', label:'Santai (non-profit only)'},
+    {id:'standard', label:'Standard (all users)', shortLabel:'Standard'},
+    {id:'santai', label:'Santai (non-profit only)', shortLabel:'Santai'},
   ],
   hitpay: [
-    {id:'standard', label:'Standard (only published tier)'},
+    {id:'standard', label:'Standard (only published tier)', shortLabel:'Standard'},
   ],
   stripe: [
-    {id:'standard', label:'Standard (only published tier)'},
+    {id:'standard', label:'Standard (only published tier)', shortLabel:'Standard'},
   ],
 };
 
@@ -351,18 +380,24 @@ const selectedPlan = {billplz:'basic', toyyib:'standard', hitpay:'standard', str
 // subscription / onboarding cost of each plan — separate from the per-transaction rate
 const planDetails = {
   billplz: {
-    basic:    {annual: 0,       annualLabel: 'RM0/yr',                          onboard: 0,   onboardLabel: 'RM0'},
-    standard: {annual: 1079.12, annualLabel: 'RM999/yr + 8% SST ≈ RM1,079.12/yr', onboard: 0,   onboardLabel: 'RM0'},
+    basic:    {annual: 0,       annualDisplay: 'Free',    annualNote: 'no subscription',
+               onboard: 0,      onboardDisplay: 'RM0',    onboardNote: ''},
+    standard: {annual: 1079.12, annualDisplay: 'RM999/yr', annualNote: '+8% SST → RM1,079.12/yr',
+               onboard: 0,      onboardDisplay: 'RM0',    onboardNote: ''},
   },
   toyyib: {
-    standard: {annual: 0, annualLabel: 'RM0/yr', onboard: 100, onboardLabel: 'RM100 once + RM100/yr from yr 2 (card acceptance only)'},
-    santai:   {annual: 0, annualLabel: 'RM0/yr', onboard: 100, onboardLabel: 'Same RM100 card setup applies if cards are enabled'},
+    standard: {annual: 0, annualDisplay: 'Free', annualNote: 'no subscription',
+               onboard: 100, onboardDisplay: 'RM100', onboardNote: '+RM100/yr from year 2 · card acceptance only'},
+    santai:   {annual: 0, annualDisplay: 'Free', annualNote: 'non-profit only',
+               onboard: 100, onboardDisplay: 'RM100', onboardNote: 'same card setup fee applies if cards are enabled'},
   },
   hitpay: {
-    standard: {annual: 0, annualLabel: 'RM0/yr', onboard: 0, onboardLabel: 'RM0'},
+    standard: {annual: 0, annualDisplay: 'Free', annualNote: 'no subscription',
+               onboard: 0, onboardDisplay: 'RM0', onboardNote: ''},
   },
   stripe: {
-    standard: {annual: 0, annualLabel: 'RM0/yr', onboard: 0, onboardLabel: 'RM0'},
+    standard: {annual: 0, annualDisplay: 'Free', annualNote: 'no subscription',
+               onboard: 0, onboardDisplay: 'RM0', onboardNote: ''},
   },
 };
 
@@ -506,23 +541,36 @@ function renderPlanControls(){
   });
 }
 
-function renderPlanCostTable(){
-  const tbody = document.querySelector('#planCostTable tbody');
-  tbody.innerHTML = '';
+function renderPlanCostCards(){
+  const wrap = document.getElementById('planCostCards');
+  wrap.innerHTML = '';
   gateways.forEach(g=>{
     plans[g].forEach(pl=>{
       const d = planDetails[g][pl.id];
-      const tr = document.createElement('tr');
       const active = pl.id === selectedPlan[g];
-      if(active) tr.style.background = 'var(--accent-soft)';
       const monthly = r(d.annual/12);
-      tr.innerHTML =
-        '<th>'+gwLabel[g]+'</th>'+
-        '<td style="text-align:left;font-weight:'+(active?'600':'400')+';">'+pl.label+(active?' <span style="color:var(--accent);font-size:11px;">&larr; selected</span>':'')+'</td>'+
-        '<td style="text-align:left;">'+d.annualLabel+'</td>'+
-        '<td style="text-align:left;">'+d.onboardLabel+'</td>'+
-        '<td>'+(monthly>0 ? 'RM'+monthly.toFixed(2) : '—')+'</td>';
-      tbody.appendChild(tr);
+      const card = document.createElement('div');
+      card.className = 'plancard' + (active ? ' selected' : '');
+      card.innerHTML =
+        '<div class="pcTop">'+
+          '<span class="gw">'+gwLabel[g]+'</span>'+
+          '<span class="planname">'+pl.shortLabel+'</span>'+
+        '</div>'+
+        (active ? '<span class="selectedTag">selected above</span>' : '')+
+        '<div class="pcStat">'+
+          '<span class="k">Subscription</span>'+
+          '<span class="v">'+d.annualDisplay+(d.annualNote ? ' <small>'+d.annualNote+'</small>' : '')+'</span>'+
+        '</div>'+
+        '<div class="pcStat">'+
+          '<span class="k">Onboarding / setup</span>'+
+          '<span class="v">'+d.onboardDisplay+(d.onboardNote ? ' <small>'+d.onboardNote+'</small>' : '')+'</span>'+
+        '</div>'+
+        '<hr class="pcDivider">'+
+        '<div class="pcMonthly">'+
+          '<span class="k">Amortized / month</span>'+
+          '<span class="v">'+(monthly>0 ? 'RM'+monthly.toFixed(2) : '—')+'</span>'+
+        '</div>';
+      wrap.appendChild(card);
     });
   });
 }
@@ -596,7 +644,7 @@ function renderProjection(){
   costs.forEach(c=>{
     const div = document.createElement('div');
     div.className = 'pcard' + (c.total===min && c.total!==null ? ' lead' : '');
-    const planLabel = plans[c.g].find(p=>p.id===selectedPlan[c.g]).label;
+    const planLabel = plans[c.g].find(p=>p.id===selectedPlan[c.g]).shortLabel;
     if(c.total===null){
       div.innerHTML = '<div class="gw">'+gwLabel[c.g]+'</div><div class="plan">'+planLabel+'</div><div class="amt" style="color:var(--ink-faint);font-size:15px;">not offered</div>';
     } else {
@@ -635,7 +683,7 @@ function update(){
   markActiveChip(price);
   renderProjection();
   renderRefTable();
-  renderPlanCostTable();
+  renderPlanCostCards();
 }
 
 document.getElementById('price').addEventListener('input', update);
